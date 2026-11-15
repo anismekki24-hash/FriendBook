@@ -1,0 +1,42 @@
+<?php require('Template/header.phtml') ?>
+<!DOCTYPE HTML>
+<HTML lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Login </title>
+</head>
+<body role="document" title="Login Page">
+
+<div class="row justify-content-center">
+    <div class="col-12 col-md-6 col-lg-4">
+        <?php if (!\Models\Authentication::isLoggedIn()) { ?>
+            <h2 class="text-center mb-4">Login</h2>
+
+            <form method="POST" action="" class="login-form">
+                <div class="form-group mb-3">
+                    <label for="username">Username</label>
+                    <input class="form-control" id="username" type="text" name="username">
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="password">Password</label>
+                    <input class="form-control" id="password" type="password" name="password">
+                </div>
+
+                <input class="form-control btn btn-primary w-100"
+                       type="submit"
+                       value="Login"
+                       name="LoginButton"
+                >
+            </form>
+
+        <?php }
+        if (isset($view->wrong)) {
+            echo '<div class="alert alert-danger" role="alert">' . $view->wrong . '</div>';
+        }
+        ?>
+    </div>
+</div>
+</body>
+</HTML>

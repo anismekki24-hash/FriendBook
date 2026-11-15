@@ -1,0 +1,45 @@
+<?php
+if (\Models\Authentication::isLoggedIn() && !empty($view->pendingRequests)): ?>
+    <div class="row">
+        <h3>Pending Friend Requests</h3>
+        <div class="table-responsive-custom">
+            <table class="table table-bordered table-responsive">
+                <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Profile Picture</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <?php foreach ($view->pendingRequests as $request): ?>
+                    <tr>
+                        <td><?= htmlspecialchars($request->getUsername()); ?></td>
+                        <td>
+                            <?php $photo = $request->getPhoto();
+                            $src = str_starts_with($photo, 'http') ? $photo : 'uploads/' . $photo; ?>
+                            <img src="<?= htmlspecialchars($src); ?>" alt="Photo" width="50">
+                        </td>
+                        <td>
+                            <div class="btn-group-mobile">
+                                <form method="POST" action="friends.php" style="display:inline;">
+                                    <input type="hidden" name="friend_id" value="<?= $request->getFriend1(); ?>">
+                                    <button type="submit" name="acceptRequest" class="btn btn-primary btn-sm">
+                                        Accept Request
+                                    </button>
+                                </form>
+                                <form method="POST" action="friends.php" style="display:inline;">
+                                    <input type="hidden" name="friend_id" value="<?= $request->getFriend1(); ?>">
+                                    <button type="submit" name="rejectRequest" class="btn btn-danger btn-sm">
+                                        Reject Request
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+<?php endif; ?>

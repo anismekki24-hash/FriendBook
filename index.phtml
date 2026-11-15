@@ -1,0 +1,163 @@
+<?php require('Template/header.phtml') ?>
+<!DOCTYPE html>
+<head>
+    <meta charset="utf-8">
+    <meta name = "viewport" content="width=device-width, initial-scale=1.0">
+    <title> FriendBook Users List</title>
+</head>
+
+<?php if (\Models\Authentication::isLoggedIn()) { ?>
+    <form method="GET" action="">
+        <input class="form-control btn btn-primary w-100"
+               type="submit"
+               value="Logout"
+               name="LogoutButton">
+    </form>
+<?php } ?>
+
+<div class="row flex-column flex-md-row">
+    <div class="col-12 col-md-5">
+        <p><?php echo $view->pageTitle . '<br>' . $view->dbMessage ?></p>
+    </div>
+    <div class="col-12 col-md-7">
+        <p>Current script <?php echo htmlspecialchars($_SERVER["PHP_SELF"], ENT_QUOTES, 'UTF-8'); ?></p>
+    </div>
+</div>
+
+
+<div class="row">
+    <div class="table-responsive-custom">
+        <table class="table table-bordered table-responsive">
+            <thead>
+            <tr>
+                <th>Username</th>
+                <th>Photo</th>
+                <?php if (\Models\Authentication::isLoggedIn()): ?>
+                    <th> Email</th>
+                    <th>Friends List</th>
+                <?php endif; ?>
+            </tr>
+            </thead>
+            <tbody>
+
+
+            <?php foreach ($view->userDataSet as $userData): ?>
+                <tr>
+                    <!-- Username -->
+                    <td>
+                        <?= htmlspecialchars($userData->getUsername()); ?>
+                    </td>
+
+                    <!-- Photo (Always visible) -->
+                    <td>
+                        <?php $photo = $userData->getPhoto();
+                        $src = str_starts_with($photo, 'http') ? $photo : 'uploads/' . $photo; ?>
+                        <img src="<?= htmlspecialchars($src); ?>" alt="Photo" width="50">
+                    </td>
+
+                    <?php if (\Models\Authentication::isLoggedIn()): ?>
+                        <!-- Email (Logged-in only) -->
+                        <td><?= htmlspecialchars($userData->getEmail()); ?></td>
+
+                        <!-- Actions Column -->
+                        <td>
+                            <div class="btn-group-mobile">
+                                <!-- 1. Friends List Button (Navigates to their friends page) -->
+                                <form method="GET" action="friends.php" style="display:inline;">
+                                    <input type="hidden" name="id" value="<?= $userData->getId(); ?>">
+                                    <button type="submit" class="btn btn-secondary btn-sm">
+                                        Friends List
+                                    </button>
+                                </form>
+
+                                <!-- 2. Send Request Form (Only show for other users) -->
+                                <?php if ($userData->getId() !== $view->currentUser->getId()): ?>
+                                    <?php if ($view->friendDataSet->areFriends($userData->getId(), $view->currentUser->getId())): ?>
+                                        <!-- Already friends — show Friends label -->
+                                        <span class="btn btn-success btn-sm disabled">Friends</span>
+                                    <?php elseif ($view->friendDataSet->requestExist($userData->getId(), $view->currentUser->getId())): ?>
+                                        <!-- Request received from this user — show Accept button -->
+                                        <form method="POST" action="friends.php" style="display:inline;">
+                                            <input type="hidden" name="friend_id" value="<?= $userData->getId(); ?>">
+                                            <button type="submit" name="acceptRequest" class="btn btn-primary btn-sm">
+                                                Accept Request
+                                            </button>
+                                            <button type="submit" name="rejectRequest" class="btn btn-primary btn-sm">
+                                                Reject Request
+                                            </button>
+                                        </form>
+                                    <?php elseif ($view->friendDataSet->requestExist($view->currentUser->getId(), $userData->getId())): ?>
+                                        <!-- Request already sent to this user -->
+                                        <span>Request sent</span>
+                                    <?php else: ?>
+                                        <!-- No request exists — show Send button -->
+                                        <form method="POST" action="friends.php" style="display:inline;">
+                                            <input type="hidden" name="receiver_id" value="<?= $userData->getId(); ?>">
+                                            <button type="submit" name="sendRequest" class="btn btn-primary btn-sm">
+                                                Send Request
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
+                                <?php endif; ?>
+                            </div>
+                        </td>
+                    <?php endif; ?>
+                </tr>
+            <?php endforeach; ?>
+
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Pagination Navigation -->
+<?php if ($view->pagination->getTotalPages() > 1): ?>
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="Pagination" class="mb-3">
+                <ul class="pagination justify-content-center flex-wrap">
+                    <!-- Previous Button -->
+                    <?php if ($view->pagination->hasPrev()): ?>
+                        <li class="page-item">
+                            <a class="page-link" href="?page=<?= $view->pagination->getPrevPage() ?>">Previous</a>
+                        </li>
+                    <?php else: ?>
+                        <li class="page-item disabled">
+                            <span class="page-link">Previous</span>
+                        </li>
+                    <?php endif; ?>
+
+                    <!-- Page Numbers -->
+                    <?php for ($i = 1; $i <= $view->pagination->getTotalPages(); $i++): ?>
+                        <?php if ($i == $view->pagination->getCurrentPage()): ?>
+                            <li class="page-item active">
+                                <span class="page-link">
+                                    <?= $i ?>
+                                    <span class="sr-only">(current)</span>
+                                </span>
+                            </li>
+                        <?php else: ?>
+                            <li class="page-item">
+                                <a class="page-link" href="?page=<?= $i ?>"><?= $i ?></a>
+                            </li>
+                        <?php endif; ?>
+                    <?php endfor; ?>
+
+                    <!-- Next Button -->
+                    <?php if ($view->pagination->hasNext()): ?>
+                        <li class="page-item">
+                            <a class="page-link" href="?page=<?= $view->pagination->getNextPage() ?>">Next</a>
+                        </li>
+                    <?php else: ?>
+                        <li class="page-item disabled">
+                            <span class="page-link">Next</span>
+                        </li>
+                    <?php endif; ?>
+                </ul>
+            </nav>
+        </div>
+    </div>
+<?php endif; ?>
+
+<?php require('template/footer.phtml') ?>
+
